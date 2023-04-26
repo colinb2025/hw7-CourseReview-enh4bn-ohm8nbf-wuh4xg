@@ -1,8 +1,17 @@
 package org.example;
 
 public class Review {
+    private String writtenBy;
     private String reviewText;
     private int rating;
+
+    public String getWrittenBy() {
+        return writtenBy;
+    }
+
+    public void setWrittenBy(String writtenBy) {
+        this.writtenBy = writtenBy;
+    }
 
     public String getReviewText() {
         return reviewText;
