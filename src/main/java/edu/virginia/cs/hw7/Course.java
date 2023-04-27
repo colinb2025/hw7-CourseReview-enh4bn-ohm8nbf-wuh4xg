@@ -1,14 +1,19 @@
-package org.example;
+package edu.virginia.cs.hw7;
 
 public class Course {
-    private String department;
+    private int department;
     private int catalogNumber;
 
-    public String getDepartment() {
+    public Course(int department, int catalogNumber) {
+        this.department = department;
+        this.catalogNumber = catalogNumber;
+    }
+
+    public int getDepartment() {
         return department;
     }
 
-    public void setDepartment(String department) {
+    public void setDepartment(int department) {
         this.department = department;
     }
 
