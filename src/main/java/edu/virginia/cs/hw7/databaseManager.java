@@ -13,8 +13,9 @@ public class databaseManager implements databaseInterface{
     }
     public static void main(String[] args){
         databaseManager m = new databaseManager();
+        Student s = new Student("user5", "pass");
         m.connect();
-        m.tableCreation();
+        m.clearTables("all");
         m.disconnect();
     }
 
@@ -119,6 +120,36 @@ public class databaseManager implements databaseInterface{
             throw new IllegalStateException("Tables don't exist", e);
         }
     }
+    public void clearTables(String query){
+        String clearRoutesTable = "DELETE FROM Students;";
+        String clearBusLinesTable = "DELETE FROM Courses;";
+        String clearStopsTable = "DELETE FROM Reviews;";
+
+        try (PreparedStatement stmt1 = conn.prepareStatement(clearRoutesTable);
+             PreparedStatement stmt2 = conn.prepareStatement(clearBusLinesTable);
+             PreparedStatement stmt3 = conn.prepareStatement(clearStopsTable)) {
+            if(query.equals("students")){
+                stmt1.executeUpdate();
+
+            }
+            else if(query.equals("courses")){
+                stmt2.execute();
+            }
+            else if(query.equals("reviews")){
+                stmt3.execute();
+            } else if (query.equals("all")) {
+                stmt1.executeUpdate();
+                stmt2.executeUpdate();
+                stmt3.executeUpdate();
+            }
+
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to clear tables", e);
+        }
+        if (!connected) {
+            throw new IllegalStateException("Manager hasn't connected yet");
+        }
+    }
 
     @Override
     public void addCourses(Course course) {
@@ -147,7 +178,18 @@ public class databaseManager implements databaseInterface{
         if(!connected){
             throw new IllegalStateException("Not connected");
         }
-        String sql = "INSERT INTO Students(Name, Password) VALUES (?, ?)";
+        try{
+        String sql1 = "SELECT * FROM Students WHERE Name ='"+ student.getUserName()+"';";
+        PreparedStatement stmt = conn.prepareStatement(sql1);
+        ResultSet rs = stmt.executeQuery();
+        if(rs.getString(2).equals(student.getUserName())){
+            System.out.println(true);
+            throw new IllegalStateException("user already exists");
+        }
+
+        } catch (SQLException e) {
+        }
+        String sql = "INSERT INTO Students (Name,Password )VALUES (?, ?)";
         try {
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, student.getUserName());
@@ -171,12 +213,11 @@ public class databaseManager implements databaseInterface{
 
     @Override
     public Student getLogin(String username) throws SQLException {
-        String sql = "SELECT Password FROM Students Name = "+username+";";
+        String sql = String.format("SELECT * FROM Students WHERE Name = \'%s\'", username);
         PreparedStatement stmt= conn.prepareStatement(sql);
-        ResultSet  rs= stmt.executeQuery();
-        String name = rs.getString(1);
-        String password = rs.getString(2);
-        Student student = new Student(name, password);
+        ResultSet resultSet = stmt.executeQuery();
+        String password = resultSet.getString(3);
+        Student student = new Student(username, password);
         return student;
     }
     @Override
@@ -215,5 +256,4 @@ public class databaseManager implements databaseInterface{
             throw new IllegalStateException(e);
         }
     }
-
 }
