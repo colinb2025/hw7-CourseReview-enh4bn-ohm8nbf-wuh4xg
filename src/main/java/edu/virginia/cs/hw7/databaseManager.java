@@ -14,11 +14,11 @@ public class databaseManager implements databaseInterface{
     }
     public static void main(String[] args) throws SQLException {
         databaseManager m = new databaseManager();
-        Course c = new Course(1010,1700);
+        Course c = new Course("CS",1700);
         Student s = new Student("James", "cunt");
         Review r = new Review("James", "Course was really ass", 1);
         m.connect();
-        //m.addStudent(s);
+//        m.addStudent(s);
         m.addReview(r, c, s);
         m.getReviews(c);
         m.disconnect();
@@ -164,7 +164,7 @@ public class databaseManager implements databaseInterface{
         String sql = "INSERT INTO Courses(DepartmentNum, CatalogNum) VALUES (?, ?)";
         try {
             PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, course.getDepartment());
+            stmt.setString(1, course.getDepartment());
             stmt.setInt(2, course.getCatalogNumber());
             stmt.addBatch();
             stmt.executeBatch();
@@ -215,13 +215,13 @@ public class databaseManager implements databaseInterface{
     public void addReview(Review review, Course course, Student student) {
         try {
             Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(String.format("SELECT * FROM Students WHERE Name = %s AND Password = %s", student.getUserName(), student.getPassword()));
+            ResultSet rs = statement.executeQuery(String.format("SELECT * FROM Students WHERE Name = '%s' AND Password = '%s'", student.getUserName(), student.getPassword()));
             int studentID = rs.getInt("ID");
-            rs = statement.executeQuery(String.format("SELECT * FROM Courses WHERE DepartmentNum = %s AND CatalogNum = %d",course.getDepartment(), course.getCatalogNumber()));
+            rs = statement.executeQuery(String.format("SELECT * FROM Courses WHERE DepartmentNum = '%s' AND CatalogNum = %d",course.getDepartment(), course.getCatalogNumber()));
             int courseID = rs.getInt("ID");
             String reviewText = review.getReviewText();
             int rating = review.getRating();
-            statement.executeUpdate(String.format("INSERT INTO Reviews VALUES(%d, %d, \'%s\', %d)", courseID, studentID, reviewText, rating));
+            statement.executeUpdate(String.format("INSERT INTO Reviews (CourseId, StudentID, Review, Rating)VALUES(%d, %d, \'%s\', %d)", courseID, studentID, reviewText, rating));
         }
         catch (SQLException e) {
             System.out.println("Could not add review!");
@@ -245,7 +245,7 @@ public class databaseManager implements databaseInterface{
         PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
         while (rs.next()) {
-            int department = rs.getInt(1);
+            String department = rs.getString(1);
             int catalog = rs.getInt(2);
             Course c = new Course(department, catalog);
             result.add(c);
@@ -257,10 +257,10 @@ public class databaseManager implements databaseInterface{
 
     @Override
     public ArrayList<Review> getReviews(Course course) {
-        String sql = "SELECT * FROM Courses WHERE DepartmentNum = "+course.getDepartment()+" AND CatalogNum ="+course.getCatalogNumber();
+        String sql = "SELECT * FROM Courses WHERE DepartmentNum = '"+course.getDepartment()+"' AND CatalogNum ="+course.getCatalogNumber();
         ArrayList<Review> reviewArray = new ArrayList<>();
         try{
-            System.out.println(String.format(" * ATTEMPTING TO FIND COURSE (%d %d)",course.getDepartment(), course.getCatalogNumber()));
+            System.out.println(String.format(" * ATTEMPTING TO FIND COURSE (%s %d)",course.getDepartment(), course.getCatalogNumber()));
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
             int courseID = rs.getInt("ID");
