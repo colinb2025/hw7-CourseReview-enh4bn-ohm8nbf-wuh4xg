@@ -27,6 +27,18 @@ public class databaseManager implements databaseInterface{
                 conn.setAutoCommit(false);
                 connected = true;
                 System.out.println("Connected!");
+                DatabaseMetaData metaData = conn.getMetaData();
+                ResultSet studentsTable = metaData.getTables(null, null, "Students", null);
+                ResultSet coursesTable = metaData.getTables(null, null, "Courses", null);
+                ResultSet reviewsTable = metaData.getTables(null, null, "Reviews", null);
+                if(!studentsTable.next()){
+                    createStudentsTable();
+                } else if (!coursesTable.next()) {
+                    createCoursesTable();
+                }
+                else if(!reviewsTable.next()){
+                    createReviewsTable();
+                }
             }
             else{
                 throw new IllegalStateException("Manager already connected");
@@ -203,4 +215,5 @@ public class databaseManager implements databaseInterface{
             throw new IllegalStateException(e);
         }
     }
+
 }
