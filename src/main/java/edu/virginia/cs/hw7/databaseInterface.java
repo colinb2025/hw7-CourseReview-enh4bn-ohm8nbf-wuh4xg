@@ -5,12 +5,6 @@ import java.util.ArrayList;
 
 public interface databaseInterface {
      /**
-      * this is where we will make the new database if we need to
-      * there was a weird requirement for it in the writeup
-      */
-
-     void createNewDatabase();
-     /**
       * connects to the database
       */
      void connect() throws ClassNotFoundException, SQLException;

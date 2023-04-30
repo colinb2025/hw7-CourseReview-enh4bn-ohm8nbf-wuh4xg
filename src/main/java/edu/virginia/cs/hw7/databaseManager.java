@@ -8,14 +8,11 @@ public class databaseManager implements databaseInterface{
     private Connection conn;
     private boolean connected = false;
     private static final String DatabaseURL = "jdbc:sqlite:Reviews.sqlite3";
-    public  void createNewDatabase(){
-
-    }
     public static void main(String[] args) throws SQLException {
         databaseManager m = new databaseManager();
-        Course c = new Course(10101,1700);
+        Course c = new Course("CS",1700);
         m.connect();
-        m.getReviews(c);
+        System.out.println(m.getReviews(c));
         m.disconnect();
     }
 
@@ -55,7 +52,7 @@ public class databaseManager implements databaseInterface{
             Statement statement = conn.createStatement();
             statement.executeUpdate("CREATE TABLE Courses(" +
                     "ID INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "DepartmentNum INTEGER NOT NULL," +
+                    "DepartmentNum VARCHAR NOT NULL," +
                     "CatalogNum INTEGER NOT NULL);");
         }
         catch (SQLException e) {
@@ -156,19 +153,31 @@ public class databaseManager implements databaseInterface{
         if(!connected){
             throw new IllegalStateException("Not connected");
         }
+        try{
+            ArrayList<Course> c =getCourses();
+            if(c.size()!=0){
+            for(int i=0; i<c.size(); i++){
+            if(c.get(i).getCatalogNumber()==course.getCatalogNumber()&& c.get(i).getDepartment()==course.getDepartment()){
+                throw new IllegalArgumentException("already exists");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+
+        }
         String sql = "INSERT INTO Courses(DepartmentNum, CatalogNum) VALUES (?, ?)";
         try {
             PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, course.getDepartment());
+            stmt.setString(1, course.getDepartment());
             stmt.setInt(2, course.getCatalogNumber());
             stmt.addBatch();
             stmt.executeBatch();
         }
         catch (SQLException e){
-            throw new IllegalStateException("failed to add stop",e );
+            throw new IllegalStateException("failed to add Course",e );
         }
         catch (IllegalArgumentException e){
-            throw new IllegalArgumentException("Stop is already in the table",e );
+            throw new IllegalArgumentException("Course is already in the table",e );
         }
 
     }
@@ -198,10 +207,10 @@ public class databaseManager implements databaseInterface{
             stmt.executeBatch();
         }
         catch (SQLException e){
-            throw new IllegalStateException("failed to add stop",e );
+            throw new IllegalStateException("failed to add student",e );
         }
         catch (IllegalArgumentException e){
-            throw new IllegalArgumentException("Stop is already in the table",e );
+            throw new IllegalArgumentException("Student is already in the table",e );
         }
 
     }
@@ -227,8 +236,8 @@ public class databaseManager implements databaseInterface{
         PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
         while (rs.next()) {
-            int department = rs.getInt(1);
-            int catalog = rs.getInt(2);
+            String department = rs.getString(2);
+            int catalog = rs.getInt(3);
             Course c = new Course(department, catalog);
             result.add(c);
 
@@ -239,11 +248,11 @@ public class databaseManager implements databaseInterface{
 
     @Override
     public ArrayList<Review> getReviews(Course course) {
-        String sql = "SELECT * FROM Courses WHERE DepartmentNum = "+course.getDepartment()+" AND CatalogNum ="+course.getCatalogNumber();
+    String sql = "SELECT * FROM Reviews WHERE CourseID = (SELECT ID FROM Courses WHERE DepartmentNum = '"+course.getDepartment()+"' AND CatalogNum = "+course.getCatalogNumber()+")";
         try{
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
-            System.out.println(rs.getInt(1));
+            System.out.print(rs.getString(4));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -254,7 +263,6 @@ public class databaseManager implements databaseInterface{
     public void disconnect() {
         try {
             if (connected) {
-//                conn.commit();
                 conn.close();
                 System.out.println("Disconnected!");
             } else {
