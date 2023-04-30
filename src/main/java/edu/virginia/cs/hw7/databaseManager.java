@@ -13,9 +13,9 @@ public class databaseManager implements databaseInterface{
     }
     public static void main(String[] args) throws SQLException {
         databaseManager m = new databaseManager();
-        Course c = new Course(1010,1700);
+        Course c = new Course(10101,1700);
         m.connect();
-        m.addCourses(c);
+        m.getReviews(c);
         m.disconnect();
     }
 
@@ -238,8 +238,15 @@ public class databaseManager implements databaseInterface{
     }
 
     @Override
-    public ArrayList<Review> getReviews() {
-
+    public ArrayList<Review> getReviews(Course course) {
+        String sql = "SELECT * FROM Courses WHERE DepartmentNum = "+course.getDepartment()+" AND CatalogNum ="+course.getCatalogNumber();
+        try{
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
+            System.out.println(rs.getInt(1));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         return null;
     }
 
