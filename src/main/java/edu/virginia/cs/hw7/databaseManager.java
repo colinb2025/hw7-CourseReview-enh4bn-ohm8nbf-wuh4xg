@@ -11,11 +11,11 @@ public class databaseManager implements databaseInterface{
     public  void createNewDatabase(){
 
     }
-    public static void main(String[] args){
+    public static void main(String[] args) throws SQLException {
         databaseManager m = new databaseManager();
-        Student s = new Student("user5", "pass");
+        Course c = new Course(1010,1700);
         m.connect();
-        m.clearTables("all");
+        m.addCourses(c);
         m.disconnect();
     }
 
@@ -25,7 +25,7 @@ public class databaseManager implements databaseInterface{
             if(!connected){
                 Class.forName("org.sqlite.JDBC");
                 conn = DriverManager.getConnection(DatabaseURL);
-                conn.setAutoCommit(false);
+                conn.setAutoCommit(true);
                 connected = true;
                 System.out.println("Connected!");
                 DatabaseMetaData metaData = conn.getMetaData();
@@ -239,6 +239,7 @@ public class databaseManager implements databaseInterface{
 
     @Override
     public ArrayList<Review> getReviews() {
+
         return null;
     }
 
@@ -246,7 +247,7 @@ public class databaseManager implements databaseInterface{
     public void disconnect() {
         try {
             if (connected) {
-                conn.commit();
+//                conn.commit();
                 conn.close();
                 System.out.println("Disconnected!");
             } else {
