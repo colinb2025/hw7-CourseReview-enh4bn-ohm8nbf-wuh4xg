@@ -1,6 +1,5 @@
 package edu.virginia.cs.hw7;
 
-import javax.swing.plaf.nimbus.State;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.sql.*;
@@ -9,12 +8,9 @@ public class databaseManager implements databaseInterface{
     private Connection conn;
     private boolean connected = false;
     private static final String DatabaseURL = "jdbc:sqlite:Reviews.sqlite3";
-    public  void createNewDatabase(){
-
-    }
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args){
         databaseManager m = new databaseManager();
-        Course c = new Course("CS",1700);
+        Course c = new Course("CV",1700);
         Student s = new Student("James", "cunt");
         Review r = new Review("James", "Course was really ass", 1);
         m.connect();
@@ -214,14 +210,21 @@ public class databaseManager implements databaseInterface{
     @Override
     public void addReview(Review review, Course course, Student student) {
         try {
+            int courseID;
             Statement statement = conn.createStatement();
             ResultSet rs = statement.executeQuery(String.format("SELECT * FROM Students WHERE Name = '%s' AND Password = '%s'", student.getUserName(), student.getPassword()));
             int studentID = rs.getInt("ID");
+            try{
             rs = statement.executeQuery(String.format("SELECT * FROM Courses WHERE DepartmentNum = '%s' AND CatalogNum = %d",course.getDepartment(), course.getCatalogNumber()));
-            int courseID = rs.getInt("ID");
+            courseID = rs.getInt("ID");}
+            catch (SQLException e){
+                addCourses(course);
+                rs = statement.executeQuery(String.format("SELECT * FROM Courses WHERE DepartmentNum = '%s' AND CatalogNum = %d",course.getDepartment(), course.getCatalogNumber()));
+                courseID = rs.getInt("ID");
+            }
             String reviewText = review.getReviewText();
             int rating = review.getRating();
-            statement.executeUpdate(String.format("INSERT INTO Reviews (CourseId, StudentID, Review, Rating)VALUES(%d, %d, \'%s\', %d)", courseID, studentID, reviewText, rating));
+            statement.executeUpdate(String.format("INSERT INTO Reviews (CourseId, StudentID, Review, Rating)VALUES(%d, %d, '%s', %d)", courseID, studentID, reviewText, rating));
         }
         catch (SQLException e) {
             System.out.println("Could not add review!");
@@ -231,12 +234,11 @@ public class databaseManager implements databaseInterface{
 
     @Override
     public Student getLogin(String username) throws SQLException {
-        String sql = String.format("SELECT * FROM Students WHERE Name = \'%s\'", username);
+        String sql = String.format("SELECT * FROM Students WHERE Name = '%s'", username);
         PreparedStatement stmt= conn.prepareStatement(sql);
         ResultSet resultSet = stmt.executeQuery();
         String password = resultSet.getString(3);
-        Student student = new Student(username, password);
-        return student;
+        return new Student(username, password);
     }
     @Override
     public ArrayList<Course> getCourses() throws SQLException {
@@ -260,13 +262,11 @@ public class databaseManager implements databaseInterface{
         String sql = "SELECT * FROM Courses WHERE DepartmentNum = '"+course.getDepartment()+"' AND CatalogNum ="+course.getCatalogNumber();
         ArrayList<Review> reviewArray = new ArrayList<>();
         try{
-            System.out.println(String.format(" * ATTEMPTING TO FIND COURSE (%s %d)",course.getDepartment(), course.getCatalogNumber()));
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
             int courseID = rs.getInt("ID");
             stmt.close();
             Statement stmt1 = conn.createStatement();
-            System.out.println(" * * FOUND COURSE WITH ID: "+courseID);
             ResultSet rs1 = stmt1.executeQuery(String.format("SELECT * FROM Reviews WHERE CourseID = %d",courseID));
             while(rs1.next()) {
                 Review curReview = new Review(null, null, 0);
@@ -277,10 +277,6 @@ public class databaseManager implements databaseInterface{
                 String studentName = rs2.getString("Name");
                 curReview.setWrittenBy(studentName);
                 reviewArray.add(curReview);
-                System.out.println(" - - REVIEW:");
-                System.out.println(" - - - NAME: "+curReview.getWrittenBy());
-                System.out.println(" - - - RATING: "+curReview.getRating());
-                System.out.println(" - - - TEXT: "+curReview.getReviewText());
             }
             return reviewArray;
         } catch (SQLException e) {
