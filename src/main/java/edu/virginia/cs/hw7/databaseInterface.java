@@ -52,7 +52,7 @@ public interface databaseInterface {
       * adds a review
       * links with foreign keys to student and courses
       */
-     void addReview(Review review);
+     void addReview(Review review, Course course, Student student);
 
      /**
       * get the Students login info
