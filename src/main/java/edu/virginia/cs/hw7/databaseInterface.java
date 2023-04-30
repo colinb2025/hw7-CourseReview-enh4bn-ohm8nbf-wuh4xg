@@ -73,7 +73,7 @@ public interface databaseInterface {
       *
       * @return a list of reviews that goes with the course
       */
-     ArrayList<Review> getReviews();
+     ArrayList<Review> getReviews(Course course);
 
      void disconnect();
 

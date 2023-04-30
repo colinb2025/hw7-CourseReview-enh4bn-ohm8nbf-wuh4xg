@@ -14,7 +14,9 @@ public class databaseManager implements databaseInterface{
     public static void main(String[] args){
         databaseManager m = new databaseManager();
         m.connect();
-        m.tableCreation();
+//        m.tableCreation();
+        Course course = new Course(10, 3710);
+        m.getReviews(course);
         m.disconnect();
     }
 
@@ -197,7 +199,19 @@ public class databaseManager implements databaseInterface{
     }
 
     @Override
-    public ArrayList<Review> getReviews() {
+    public ArrayList<Review> getReviews(Course course) {
+        try {
+            ArrayList<Review> reviewsArray = new ArrayList<>();
+            int courseCatalogNum = course.getCatalogNumber();
+            int courseDeptNum = course.getDepartment();
+            System.out.println(" * ATTEMPTING TO FIND COURSE: "+courseCatalogNum+" "+courseDeptNum);
+            ArrayList<Course> courses = getCourses();
+            //TODO: Get the course ID from Courses table, find all reviews in Reviews table with that course ID, go from there.
+        }
+        catch (SQLException e) {
+            System.out.println("Could not get reviews!");
+            e.printStackTrace();
+        }
         return null;
     }
 
