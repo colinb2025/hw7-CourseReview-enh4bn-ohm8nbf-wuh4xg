@@ -1,9 +1,15 @@
-package org.example;
+package edu.virginia.cs.hw7;
 
 public class Student {
     //this is autoIncrement primary key
   private String userName;
   private String password;
+
+    public Student(String userName, String password) {
+        this.userName = userName;
+        this.password = password;
+    }
+
     public String getUserName() {
         return userName;
     }
